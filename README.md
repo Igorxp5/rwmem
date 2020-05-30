@@ -2,7 +2,7 @@
 
 **Module**: rwmem
 
-   **JOB**: Read/Write Process Memory
+   **JOB**: Read/Write Process Memory for **Windows Python**
 ***
 
 **installation**:
@@ -120,7 +120,7 @@ getModuleBaseOf()
 """
 [*] JOB: returns the module base address
 [*] Parms:
-     1 - Module Nmae
+     1 - Module Name
      2 - PID
      [*] Example:
         getModuleBaseOf("someGame.exe", 7696)
