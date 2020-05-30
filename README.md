@@ -1,6 +1,6 @@
 ***
 
-**Module**: RWMem
+**Module**: rwmem
 
    **JOB**: Read/Write Process Memory
 ***
