@@ -18,8 +18,8 @@ from rwmem import *
 
 memory.open()
 """
-Open a handle for an process, you can select  the process by it name or process id
-Examples:
+[*] JOB: Open a handle for process, you can select  the process by it name or process id
+[*] Examples:
    memory.open(7696)
    memory.open("someGame")
 
