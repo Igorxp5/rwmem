@@ -25,31 +25,6 @@ Examples:
 
 """
 
-memory.close()
-"""
-Close the open process handle
-"""
-
-procList()
-"""
-[*] JOB: list processes with its process id
-[*] Parms:
-     1 - Value
-     2 - find
-     Examples:
-       procList()
-       {1: ('SomeGame.exe', 7692), 2: ('someProg.exe', 1608), 3: ('chrome.exe', 3864)} #..etc
-       >>>
-       procList(Value="chrome")
-       {1: ('chrome.exe', 3864), 2: ('chrome.exe', 5652)}
-       >>>
-       procList(find="chrome")
-       3864
-       >>>
-       procList(find=3864)
-       'chrome.exe'
-"""
-
 memory.getProcessArch()
 """
 [*] JOB: Get the open process architecture
@@ -117,6 +92,40 @@ memory.writeBytes()
      2 - Value
      [*] Example:
         memory.writeBytes(0x11111111, "helloWorld")
+"""
+
+memory.close()
+"""
+Close the open process handle
+"""
+
+getPID()
+"""
+[*] JOB: returns process Id of processName
+[*] Example:
+      getPID("someGame")
+      7692
+      >>>
+"""
+
+procList()
+"""
+[*] JOB: list processes with its process id
+[*] Parms:
+     1 - Value
+     2 - find
+     Examples:
+       procList()
+       {1: ('SomeGame.exe', 7692), 2: ('someProg.exe', 1608), 3: ('chrome.exe', 3864)} #..etc
+       >>>
+       procList(Value="chrome")
+       {1: ('chrome.exe', 3864), 2: ('chrome.exe', 5652)}
+       >>>
+       procList(find="chrome")
+       3864
+       >>>
+       procList(find=3864)
+       'chrome.exe'
 """
 
 getModuleBase()
