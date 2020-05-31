@@ -30,18 +30,24 @@ memory.close()
 Close the open process handle
 """
 
-listProc()
+procList()
 """
 [*] JOB: list processes with its process id
-[*] without Value Parm: list all processes
-[*] With Value Parm:
-       memory.listProc(Value="SomeGame")
-       ProcessId  ProcessName
-       ---------  -----------
-         7696       SomeGame.exe
+[*] Parms:
+     1 - Value
+     2 - find
+     Examples:
+       procList()
+       {1: ('SomeGame.exe', 7692), 2: ('someProg.exe', 1608), 3: ('chrome.exe', 3864)} #..etc
        >>>
-       memory.listProc(Value=7696)
-
+       procList(Value="chrome")
+       {1: ('chrome.exe', 3864), 2: ('chrome.exe', 5652)}
+       >>>
+       procList(find="chrome")
+       3864
+       >>>
+       procList(find=3864)
+       'chrome.exe'
 """
 
 memory.getProcessArch()
@@ -77,9 +83,6 @@ memory.readStr()
            memory.readStr(0x11111111)
            'helloWorld'
            >>>
-          memory.readStr(0x11111111, length=100)
-          'helloWorld I Love python'
-          >>>
 """
 
 memory.readBytes()
@@ -116,11 +119,11 @@ memory.writeBytes()
         memory.writeBytes(0x11111111, "helloWorld")
 """
 
-getModuleBaseOf()
+getModuleBase()
 """
 [*] JOB: returns the module base address
 [*] Parms:
-     1 - Module Name
+     1 - moduleName
      2 - PID
      [*] Example:
         getModuleBaseOf("someGame.exe", 7696)
