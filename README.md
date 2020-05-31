@@ -135,7 +135,7 @@ getModuleBase()
      1 - moduleName
      2 - PID
      [*] Example:
-        getModuleBaseOf("someGame.exe", 7696)
+        getModuleBase("someGame.exe", 7696)
         '0x1C580000'
         >>>
 """
@@ -144,6 +144,6 @@ getModuleBase()
 ***
 
 **That's All :)**
-   * This Module Coded By Oseid Aldary
+   * This Module By Oseid Aldary
    * Thanks For Usage
    * Have A Nice Day...GoodBye :)
