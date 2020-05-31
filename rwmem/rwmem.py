@@ -48,7 +48,7 @@ class Memory(object):
         if self.hProcess:self.close()
         if isinstance(dwProcessId, str):
             if not dwProcessId.isdigit():
-                dwProcessId = self.getPidOf(dwProcessId)
+                dwProcessId = getPID(dwProcessId)
             dwProcessId = int(dwProcessId)
         if not isinstance(dwProcessId, int):raise TypeError("open(): Error: expected an 'int' or 'str' of ProcessID not '{}'".format(type(dwProcessId).__name__))
         self.hProcess = k32.OpenProcess(PROCESS_ALL_ACCESS, 0 ,int(dwProcessId))
@@ -72,12 +72,6 @@ class Memory(object):
         else:
           err = self.GetLastError()
           if err.winerror != 0:raise Exception('{}(): {}'.format(funcName,err))
-
-
-    def getPidOf(self,processName):
-            pid = listProc(find=processName)
-            if not pid:raise Exception("getPidOf(): Error: The process '{}' is not running!".format(processName))
-            return pid
 
 
     def getTypeInfo(self,TYPE):
@@ -151,7 +145,15 @@ class Memory(object):
       if not wrmem(self.hProcess,lpBaseAddress,c_data_,size,None):self.check("write", exp=True)
 
 
-def listProc(Value=None,find=None):
+def getPID(processName):
+    pid = procList(find=processName)
+    if not pid:raise Exception("getPID(): Error: The process '{}' is not running!".format(processName))
+    return pid
+
+
+def procList(Value=None,find=None):
+        processes = {}
+        ID = 0
         count = 32
         while True:
             ProcessIds = (DWORD*count)()
@@ -161,11 +163,8 @@ def listProc(Value=None,find=None):
                 if BytesReturned.value<cb:
                     break
                 else:count *= 2
-            else:raise Exception("getPidOf(): Error: Call to EnumProcesses failed")
-        if not find:
-            LAYOUT ="{!s:10} {!s:70}"
-            print(LAYOUT.format(*["ProcessId","ProcessName"]))
-            print(LAYOUT.format(*["---------","-----------"]))
+            else:raise Exception("procList(): Error: Call to EnumProcesses failed")
+
         for index in range(BytesReturned.value // sizeof(DWORD)):
             ProcessId = ProcessIds[index]
             hProcess = k32.OpenProcess(PROCESS_ALL_ACCESS,0, ProcessId)
@@ -173,26 +172,34 @@ def listProc(Value=None,find=None):
                 ImageFileName = (c_char*260)()
                 if GetProcessImageFileName(hProcess, ImageFileName, MAX_PATH)>0:
                     filename = path.basename(ImageFileName.value)
+                    ProcessId = int(ProcessId)
                     if find:
-                        k32.CloseHandle(hProcess)
+                        value = None
                         if (isinstance(find, int)) or (isinstance(find, str) and find.isdigit()):
-                            if int(find) == int(ProcessId):return filename
+                            if int(find) == int(ProcessId):value = filename
                         elif isinstance(find, str):
-                            if find in str(filename):return ProcessId
+                            if find in str(filename):value = ProcessId
                         else:raise TypeError("expected 'str' of processName or 'int' of ProcessID not '{}'".format(type(find).__name__))
+                        if value:
+                            k32.CloseHandle(hProcess)
+                            return value
                     elif Value:
                         if (isinstance(Value, int)) or (isinstance(Value, str) and Value.isdigit()):
-                            if int(Value) == int(ProcessId):
-                                print("  "+ LAYOUT.format(*[ProcessId, filename]))
+                            if int(Value) == ProcessId:return (filename, ProcessId)
                         elif isinstance(Value, str):
                             if str(Value) in str(filename):
-                                print("  "+ LAYOUT.format(*[ProcessId, filename]))
+                                ID+=1
+                                processes[ID]=(filename, ProcessId)
                         else:raise TypeError("expected 'str' of processName or 'int' of ProcessID not '{}'".format(type(Value).__name__))
-                    else:print("  "+ LAYOUT.format(*[ProcessId, filename]))
+                    else:
+                        ID+=1
+                        processes[ID]=(filename, ProcessId)
                 k32.CloseHandle(hProcess)
-        if find:return False
+        if find: return False
+        return processes if processes else False
 
-def getModuleBaseOf(ModuleName,PID):
+
+def getModuleBase(ModuleName,PID):
     hModuleSnap = k32.CreateToolhelp32Snapshot( 0x00000010 | 0x00000008, PID );
     me32 = ModuleEntry32()
     me32.dwSize = sizeof(ModuleEntry32)
@@ -204,6 +211,8 @@ def getModuleBaseOf(ModuleName,PID):
             break
         if not k32.Module32Next(hModuleSnap, byref(me32)):break
     k32.CloseHandle(hModuleSnap)
-    if not base:raise Exception("getModuleBaseOf(): Error: unable to find Module Base Address Of '{}' ".format(ModuleName))
-    return "0x{:08X}".format((addressof(base.contents)))
+    if not base:raise Exception("getModuleBase(): Error: unable to find Module Base Address Of '{}' ".format(ModuleName))
+    return "0x{:08X}".format(addressof(base.contents))
+
+
 memory = Memory()
