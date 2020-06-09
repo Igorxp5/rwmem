@@ -3,6 +3,8 @@ from os import path
 from ctypes import *
 from ctypes.wintypes import *
 
+__all__ = ["Memory", "procList", "getModuleBase", "getPID"]
+
 
 psapi = WinDLL('Psapi.dll')
 EnumProcesses = psapi.EnumProcesses
@@ -12,11 +14,9 @@ GetProcessImageFileName.restype = DWORD
 
 
 k32 = WinDLL('kernel32', use_last_error=True)
-
 remem = k32.ReadProcessMemory
 remem.argtypes = [HANDLE, LPCVOID, LPVOID, c_size_t, POINTER(c_size_t)]
 remem.restype = BOOL
-
 wrmem = k32.WriteProcessMemory
 wrmem.argtypes = [HANDLE, LPVOID, LPCVOID, c_size_t, POINTER(c_size_t)]
 wrmem.restype = BOOL
@@ -131,7 +131,7 @@ class Memory(object):
 
     def writeBytes(self, lpBaseAddress, Value):
           self.check("writeBytes")
-          Value = str(Value).encode("utf-8")
+          if not isinstance(Value, bytes):raise TypeError("writeBytes(): Error: expected 'bytes' not '{}'".format(type(Value).__name__))
           c_data = c_char_p(Value)
           c_data_ = cast(c_data, POINTER(c_char))
           if not wrmem(self.hProcess, lpBaseAddress, c_data_, len(Value), None):self.check("writeBytes", exp=True)
@@ -171,7 +171,7 @@ def procList(Value=None,find=None):
             if hProcess:
                 ImageFileName = (c_char*260)()
                 if GetProcessImageFileName(hProcess, ImageFileName, MAX_PATH)>0:
-                    filename = path.basename(ImageFileName.value)
+                    filename = str(path.basename(ImageFileName.value))
                     ProcessId = int(ProcessId)
                     if find:
                         value = None
@@ -200,7 +200,7 @@ def procList(Value=None,find=None):
 
 
 def getModuleBase(ModuleName,PID):
-    hModuleSnap = k32.CreateToolhelp32Snapshot( 0x00000010 | 0x00000008, PID );
+    hModuleSnap = k32.CreateToolhelp32Snapshot( PROCESS_ALL_ACCESS, PID );
     me32 = ModuleEntry32()
     me32.dwSize = sizeof(ModuleEntry32)
     k32.Module32First( hModuleSnap, byref(me32))
@@ -213,6 +213,3 @@ def getModuleBase(ModuleName,PID):
     k32.CloseHandle(hModuleSnap)
     if not base:raise Exception("getModuleBase(): Error: unable to find Module Base Address Of '{}' ".format(ModuleName))
     return "0x{:08X}".format(addressof(base.contents))
-
-
-memory = Memory()
