@@ -7,7 +7,7 @@ with open("README.md", "r") as f:
 
 setup(
     name="rwmem",
-    version="0.0.5",
+    version="0.0.6",
     description="A Simple Read/Write Memory module for Windows python",
     long_description=long_description,
     long_description_content_type="text/markdown",
