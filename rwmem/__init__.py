@@ -5,7 +5,7 @@ from os import path
 from ctypes import *
 from ctypes.wintypes import *
 __all__ = ["Memory", "memory","procList", "getModuleBase", "getPID"]
-__version__ = "0.0.6"
+__version__ = "0.0.7"
 
 
 psapi = WinDLL('Psapi.dll')
