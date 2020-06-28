@@ -4,8 +4,8 @@ import struct
 from os import path
 from ctypes import *
 from ctypes.wintypes import *
-__all__ = ["Memory", "memory","procList", "getModuleBase", "getPID"]
-__version__ = "0.0.7"
+__all__ = ["Memory", "memory","procList", "getPID", "getProcessModules", "getModuleBase"]
+__version__ = "0.0.8"
 
 
 psapi = WinDLL('Psapi.dll')
@@ -202,19 +202,26 @@ def procList(Value=None,find=None):
         return processes if processes else False
 
 
-def getModuleBase(ModuleName,PID):
+def getProcessModules(PID):
     hModuleSnap = k32.CreateToolhelp32Snapshot( PROCESS_ALL_ACCESS, PID );
     me32 = ModuleEntry32()
     me32.dwSize = sizeof(ModuleEntry32)
     k32.Module32First( hModuleSnap, byref(me32))
-    base = None
+    modules = {}
     while True:
-        if (me32.szModule.lower()==ModuleName.lower()):
-            base=me32.modBaseAddr
+        moduleName = me32.szModule.decode().lower()
+        modules[moduleName] = "0x{:08X}".format(addressof(me32.modBaseAddr.contents))
+        if not k32.Module32Next(hModuleSnap, byref(me32)):
             break
-        if not k32.Module32Next(hModuleSnap, byref(me32)):break
     k32.CloseHandle(hModuleSnap)
-    if not base:raise Exception("getModuleBase(): Error: unable to find Module Base Address Of '{}' ".format(ModuleName))
-    return "0x{:08X}".format(addressof(base.contents))
+    return modules
+
+
+def getModuleBase(ModuleName,PID):
+    modules = getProcessModules(PID)
+    if not ModuleName in modules:
+        raise Exception("getModuleBase(): Error: unable to find Module Base Address Of '{}' ".format(ModuleName))
+    return modules[ModuleName]
+
 
 memory = Memory()
